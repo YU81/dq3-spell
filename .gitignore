@@ -9,3 +9,8 @@ Homestead.json
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+bootstrap/cache/
+.env.*.php
+.env.php
+env.example
