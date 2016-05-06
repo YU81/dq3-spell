@@ -51,7 +51,7 @@ class Spell extends Controller
 
         return response()->json([
             $colNames[0] => $selectedSpell[0],
-            $colNames[1] => $selectedSpell[1],
+            $colNames[1] => (int)$selectedSpell[1],
             $colNames[2] => $spell['retain_info'],
             $colNames[3] => $selectedSpell[3],
         ]);
