@@ -17,7 +17,19 @@ class Spell extends Controller
         foreach ($data as $datum) {
             $spell = [];
             for ($i = 0; $i < $colCount; ++$i) {
-                $spell[$colNames[$i]] = $datum[$i];
+                if (!isset($datum[$i])) {
+                    continue;
+                }
+                if (preg_match('/Lv\./', $datum[$i]) === 0) {
+                    $spell[$colNames[$i]] = $datum[$i];
+                } else {
+                    $retainInfoList = explode(',', $datum[$i]);
+                    foreach ($retainInfoList as $retainInfo) {
+                        $eachJobSpell           = $this->getEachJobSpell($retainInfo);
+                        $spell[$colNames[$i]][] = $eachJobSpell;
+                    }
+
+                }
             }
             $result[] = $spell;
         }
@@ -30,10 +42,17 @@ class Spell extends Controller
         list($colNames, $data) = $this->getSpellData();
         $selectedSpell = $data[array_rand($data)];
 
+        $retainInfoList = explode(',', $selectedSpell[2]);
+        $spell          = [];
+        foreach ($retainInfoList as $retainInfo) {
+            $eachJobSpell          = $this->getEachJobSpell($retainInfo);
+            $spell[$colNames[2]][] = $eachJobSpell;
+        }
+
         return response()->json([
             $colNames[0] => $selectedSpell[0],
             $colNames[1] => $selectedSpell[1],
-            $colNames[2] => $selectedSpell[2],
+            $colNames[2] => $spell['retain_info'],
             $colNames[3] => $selectedSpell[3],
         ]);
     }
@@ -55,7 +74,8 @@ class Spell extends Controller
         foreach ($data[0] as $item) {
             $colNames[] = $item;
         }
-        array_pop($data);
+        unset($data[0]);
+        $data = array_values($data);
 
         return [$colNames, $data];
     }
@@ -64,5 +84,21 @@ class Spell extends Controller
     {
 
 
+    }
+
+    /**
+     * @param array $retainInfo
+     * @return array
+     */
+    private function getEachJobSpell($retainInfo)
+    {
+        $eachJobSpell = [];
+        $job          = mb_substr($retainInfo, 0, 1);
+        preg_match_all('/\.[0-9]+/', $retainInfo, $dotLv);
+        $lv                  = (int)mb_substr($dotLv[0][0], 1, mb_strlen($dotLv[0][0]));
+        $eachJobSpell['job'] = $job;
+        $eachJobSpell['lv']  = $lv;
+
+        return $eachJobSpell;
     }
 }
